@@ -14,6 +14,7 @@ def create_connection(path):
 
     return connection
 
+
 def create_tables():
     """Создает таблицы"""
     connection = create_connection(DB)
@@ -40,7 +41,7 @@ def add_book(title, author, genre):
     # ищем id жанра в существующих данных
     cursor.execute(f"SELECT genre_id FROM genres WHERE genre = '{genre}'")
 
-    if cursor.fetchall():  # если нашли запишем его id
+    if cursor.fetchall():  # если нашли, запишем его id
         genre_id = cursor.fetchall()[0][0]
     else:  # если жанр не нашелся, добавляем его и запишем получившийся id
         cursor.execute(f"INSERT INTO genres (genre) VALUES ('{genre}')")
@@ -50,6 +51,7 @@ def add_book(title, author, genre):
     cursor.execute(f"INSERT INTO books (title, author, genre_id) VALUES ('{title}', '{author}', {genre_id})")
     connection.commit()
     connection.close()
+
 
 if __name__ == '__main__':
     add_book("Мастер и маргарита", "Булгаков М.А.", "Роман")
