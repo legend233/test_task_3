@@ -52,8 +52,8 @@ def add_book(title: str, author: str, genre: str) -> bool:
         # ищем id жанра в существующих данных
         request = cursor.execute("SELECT genre_id FROM genres WHERE genre = ?", (genre,))
 
-        if request.fetchall():  # если нашли, запишем его id
-            genre_id = request.fetchall()[0][0]
+        if _ := request.fetchall():  # если нашли, запишем его id
+            genre_id = _[0][0]
         else:  # если жанр не нашелся, добавляем его и запишем получившийся id
             cursor.execute("INSERT INTO genres (genre) VALUES (?)", (genre,))
             request = cursor.execute("SELECT genre_id FROM genres ORDER BY genre_id DESC LIMIT 1", params=())
@@ -164,23 +164,24 @@ def add_returnbook_to_journal(book_id: int) -> bool:
         return True
 
 
-def total_count_books() -> int:
-    """Выводит количество книг в библиотеке"""
+def total_count_books(limit=10) -> list:
+    """Выводит все книги в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute("SELECT COUNT(*) FROM books").fetchall()[0][0]
+        return cursor.execute(f"SELECT book_id, title, author, (SELECT genre FROM genres WHERE genres.genre_id = books.genre_id) FROM books LIMIT {limit}").fetchall()
 
 
-def total_count_users() -> int:
-    """Выводит количество посетителей в библиотеке"""
+def total_count_users(limit=10) -> list:
+    """Выводит всех посетителей в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute("SELECT COUNT(*) FROM users").fetchall()[0][0]
+        return cursor.execute("SELECT * FROM users LIMIT {limit}}").fetchall()
 
 
-def total_count_rent(user_id: int) -> int:
+def total_count_rent(user_id: int) -> int: # TODO Сколько брал книг каждый читатель за все время
     """Выводит количество взятий книг посетителем"""
     with SQL() as cursor:
         return cursor.execute("SELECT COUNT(*) FROM rent_journal WHERE fk_user_id = ?",
                               (user_id,)).fetchall()[0][0]
+
 
 def total_count_notreturn(user_id: int) -> int:
     """Выводит количество невозвращенных книг посетителем"""
@@ -188,5 +189,7 @@ def total_count_notreturn(user_id: int) -> int:
         return cursor.execute("SELECT COUNT(*) FROM rent_journal WHERE fk_user_id = ? AND date_stop IS NULL",
                               (user_id,)).fetchall()[0][0]
 
+
 if __name__ == '__main__':
-    print(total_count_rent(11))
+    for i in total_count_books():
+        print(i)
