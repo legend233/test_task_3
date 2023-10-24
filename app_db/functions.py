@@ -135,10 +135,10 @@ def edit_user(id: int, first_name: str = None, last_name: str = None) -> bool:
             return False
 
 
-def add_getbook_to_journal(book_id: int, user_id: int) -> bool:
+def add_getbook_to_journal(book_id: int, user_id: int, days_to_return: int = 14) -> bool:
     """Функция добавляет запись в журнал о взятии книги посетителем"""
     date_start = datetime.datetime.now()
-    date_expected_stop = date_start + datetime.timedelta(days=14)
+    date_expected_stop = date_start + datetime.timedelta(days=days_to_return)
     with SQL() as cursor:
         request = cursor.execute("SELECT fk_book_id FROM rent_journal WHERE (fk_book_id) = ? AND date_stop IS NULL",
                                  (book_id,))
@@ -167,7 +167,10 @@ def add_returnbook_to_journal(book_id: int) -> bool:
 def total_count_books() -> list:
     """Выводит все книги в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute("SELECT book_id, title, author, (SELECT genre FROM genres WHERE genres.genre_id = books.genre_id) FROM books").fetchall()
+        return cursor.execute(
+            """SELECT b.book_id, b.title, b.author, g.genre
+            FROM books b
+            LEFT JOIN genres g ON b.genre_id = g.genre_id""").fetchall()
 
 
 def total_count_users() -> list:
@@ -180,14 +183,21 @@ def total_count_rent() -> list:
     """Выводит количество взятых книг посетителем за все время"""
     with SQL() as cursor:
         return cursor.execute(
-            "SELECT *, (SELECT count(id) FROM rent_journal WHERE fk_user_id = users.user_id) FROM users").fetchall()
+            """SELECT u.*, COUNT(r.id) AS rent_count
+            FROM users u
+            LEFT JOIN rent_journal r ON u.user_id = r.fk_user_id
+            GROUP BY u.user_id""").fetchall()
 
 
 def total_count_notreturn() -> list:
     """Выводит количество невозвращенных книг посетителями"""
     with SQL() as cursor:
         return cursor.execute(
-            "SELECT *, (SELECT count(id) FROM rent_journal WHERE fk_user_id = users.user_id and date_stop IS NULL) FROM users").fetchall()
+            """SELECT r.fk_user_id, u.first_name, u.last_name, count(r.id) AS rent_count
+            FROM rent_journal r
+            LEFT JOIN users u ON r.fk_user_id = u.user_id
+            WHERE r.date_stop IS NULL
+            GROUP BY r.fk_user_id""").fetchall()
 
 
 def total_last_date() -> list:
@@ -223,22 +233,32 @@ def top_genres_for_users() -> list:
     with SQL() as cursor:
         return cursor.execute(
             """WITH counts AS (
-    SELECT u.first_name, u.last_name, r.fk_user_id, g.genre, COUNT(*) as genre_count
-    FROM rent_journal r
-    LEFT JOIN books b ON r.fk_book_id = b.book_id
-    LEFT JOIN genres g ON b.genre_id = g.genre_id
-    LEFT JOIN users u ON r.fk_user_id = u.user_id
-    GROUP BY r.fk_user_id, g.genre
-    )
-    SELECT c1.fk_user_id, c1.first_name, c1.last_name, c1.genre
-    FROM counts c1
-    LEFT JOIN counts c2 ON c1.fk_user_id = c2.fk_user_id AND c1.genre_count < c2.genre_count
-    WHERE c2.fk_user_id IS NULL
-    group by c1.fk_user_id
-    ORDER BY c1.fk_user_id"""
-        ).fetchall()
+            SELECT u.first_name, u.last_name, r.fk_user_id, g.genre, COUNT(*) as genre_count
+            FROM rent_journal r
+            LEFT JOIN books b ON r.fk_book_id = b.book_id
+            LEFT JOIN genres g ON b.genre_id = g.genre_id
+            LEFT JOIN users u ON r.fk_user_id = u.user_id
+            GROUP BY r.fk_user_id, g.genre
+            )
+            SELECT c1.fk_user_id, c1.first_name, c1.last_name, c1.genre
+            FROM counts c1
+            LEFT JOIN counts c2 ON c1.fk_user_id = c2.fk_user_id AND c1.genre_count < c2.genre_count
+            WHERE c2.fk_user_id IS NULL
+            group by c1.fk_user_id
+            ORDER BY c1.fk_user_id""").fetchall()
+
+
+def total_delays() -> list:
+    """Выводит количество невозвращенных вовремя книг посетителями"""
+    with SQL() as cursor:
+        return cursor.execute(
+            """SELECT id, users.first_name, users.last_name, books.title, date_stop, date_expected_stop
+            FROM rent_journal
+            LEFT JOIN books ON rent_journal.fk_book_id = books.book_id
+            LEFT JOIN users ON rent_journal.fk_user_id = users.user_id
+            WHERE (date_stop > date_expected_stop) or (date_stop IS NULL and current_timestamp > date_expected_stop)
+            ORDER BY fk_user_id""").fetchall()
 
 
 if __name__ == '__main__':
-    for _ in top_genres_for_users():
-        print(_)
+    add_getbook_to_journal(book_id=14, user_id=1)
