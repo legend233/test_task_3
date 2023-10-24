@@ -147,11 +147,12 @@ def add_getbook_to_journal(book_id: int, user_id: int, days_to_return: int = 14)
         else:
             cursor.execute(
                 "INSERT INTO rent_journal (fk_book_id, fk_user_id, date_start, date_expected_stop) VALUES (?, ?, ?, ?)",
-                    (book_id, user_id, date_start, date_expected_stop))
+                (book_id, user_id, date_start, date_expected_stop))
             fk_journal_id = cursor.execute("SELECT id FROM rent_journal ORDER BY id DESC LIMIT 1").fetchall()[0][0]
             cursor.execute("UPDATE books SET cur_journal_id = ? WHERE book_id = ?",
                            (fk_journal_id, book_id))
             return True
+
 
 def add_returnbook_to_journal(book_id: int) -> bool:
     """Добовляет отметку в журнал о возврате книги. Также обновляет последнюю запись о книги в таблице books"""
@@ -208,6 +209,7 @@ def total_last_date() -> list:
             ELSE date_stop END AS last_date FROM rent_journal WHERE rent_journal.fk_user_id = users.user_id)
             FROM users""").fetchall()
 
+
 def max_reading_author() -> list:
     """Выводит рейтинг самых читаемых авторов у посетителей"""
     with SQL() as cursor:
@@ -261,4 +263,6 @@ def total_delays() -> list:
 
 
 if __name__ == '__main__':
-    add_getbook_to_journal(book_id=14, user_id=1)
+    for _ in total_delays():
+
+        print(_)
