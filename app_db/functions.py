@@ -164,20 +164,20 @@ def add_returnbook_to_journal(book_id: int) -> bool:
         return True
 
 
-def total_count_books(limit=10) -> list:
+def total_count_books() -> list:
     """Выводит все книги в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute(f"SELECT book_id, title, author, (SELECT genre FROM genres WHERE genres.genre_id = books.genre_id) FROM books LIMIT {limit}").fetchall()
+        return cursor.execute("SELECT book_id, title, author, (SELECT genre FROM genres WHERE genres.genre_id = books.genre_id) FROM books").fetchall()
 
 
-def total_count_users(limit=10) -> list:
+def total_count_users() -> list:
     """Выводит всех посетителей в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute("SELECT * FROM users LIMIT {limit}}").fetchall()
+        return cursor.execute("SELECT * FROM users}").fetchall()
 
 
 def total_count_rent() -> list:
-    """Выводит количество взятий книг посетителем"""
+    """Выводит количество взятых книг посетителем за все время"""
     with SQL() as cursor:
         return cursor.execute(
             "SELECT *, (SELECT count(id) FROM rent_journal WHERE fk_user_id = users.user_id) FROM users").fetchall()
@@ -202,18 +202,43 @@ def max_reading_author() -> list:
     """Выводит рейтинг самых читаемых авторов у посетителей"""
     with SQL() as cursor:
         return cursor.execute(
-            """SELECT
-    author,
-    COUNT(books.author) AS author_count
-FROM
-	rent_journal
-LEFT JOIN
-	books ON rent_journal.fk_book_id=books.book_id
-GROUP BY
-    author
-ORDER BY
-    author_count DESC
-""").fetchall()
+            """SELECT author, COUNT(books.author) AS author_count FROM rent_journal
+            LEFT JOIN books ON rent_journal.fk_book_id=books.book_id
+            GROUP BY author ORDER BY author_count DESC""").fetchall()
+
+
+def top_genres() -> list:
+    """Выводит самые читаемые жанры в порядке убывания"""
+    with SQL() as cursor:
+        return cursor.execute(
+            """SELECT genre, COUNT(books.genre_id) AS genre_count FROM rent_journal
+            LEFT JOIN books ON rent_journal.fk_book_id=books.book_id
+            LEFT JOIN genres ON books.genre_id=genres.genre_id
+            GROUP BY genre ORDER BY genre_count DESC"""
+        ).fetchall()
+
+
+def top_genres_for_users() -> list:
+    """Выводит самые читаемые жанры посетителей"""
+    with SQL() as cursor:
+        return cursor.execute(
+            """WITH counts AS (
+    SELECT u.first_name, u.last_name, r.fk_user_id, g.genre, COUNT(*) as genre_count
+    FROM rent_journal r
+    LEFT JOIN books b ON r.fk_book_id = b.book_id
+    LEFT JOIN genres g ON b.genre_id = g.genre_id
+    LEFT JOIN users u ON r.fk_user_id = u.user_id
+    GROUP BY r.fk_user_id, g.genre
+    )
+    SELECT c1.fk_user_id, c1.first_name, c1.last_name, c1.genre
+    FROM counts c1
+    LEFT JOIN counts c2 ON c1.fk_user_id = c2.fk_user_id AND c1.genre_count < c2.genre_count
+    WHERE c2.fk_user_id IS NULL
+    group by c1.fk_user_id
+    ORDER BY c1.fk_user_id"""
+        ).fetchall()
+
 
 if __name__ == '__main__':
-    print(max_reading_author())
+    for _ in top_genres_for_users():
+        print(_)
