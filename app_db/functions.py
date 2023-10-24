@@ -199,10 +199,21 @@ def total_last_date() -> list:
             from users""").fetchall()
 
 def max_reading_author() -> list:
-    """Выводит самого читаемого автора у посетителей"""
+    """Выводит рейтинг самых читаемых авторов у посетителей"""
     with SQL() as cursor:
-        return cursor.execute("SELECT author, count(book_id) FROM books GROUP BY author ORDER BY count(book_id)").fetchall()
+        return cursor.execute(
+            """SELECT
+    author,
+    COUNT(books.author) AS author_count
+FROM
+	rent_journal
+LEFT JOIN
+	books ON rent_journal.fk_book_id=books.book_id
+GROUP BY
+    author
+ORDER BY
+    author_count DESC
+""").fetchall()
 
 if __name__ == '__main__':
-    for _ in max_reading_author():
-        print(_)
+    print(max_reading_author())
