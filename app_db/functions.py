@@ -194,9 +194,9 @@ def total_last_date() -> list:
     """Выводит последние посещения библиотеки"""
     with SQL() as cursor:
         return cursor.execute(
-            """select *, (select case when date_stop is null then date_start 
-            else date_stop end as last_date from rent_journal where rent_journal.fk_user_id = users.user_id)
-            from users""").fetchall()
+            """select *, (SELECT CASE WHEN date_stop IS NULL THEN date_start 
+            ELSE date_stop END AS last_date FROM rent_journal WHERE rent_journal.fk_user_id = users.user_id)
+            FROM users""").fetchall()
 
 def max_reading_author() -> list:
     """Выводит рейтинг самых читаемых авторов у посетителей"""
