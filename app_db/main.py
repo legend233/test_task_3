@@ -9,6 +9,8 @@ from functions import (create_tables, add_book, delete_book, edit_book,
                     total_count_rent, total_count_notreturn,
                     total_last_date, max_reading_author, top_genres,
                     top_genres_for_users, total_delays)
+from settings import DB
+import os
 
 app = FastAPI()
 
@@ -84,3 +86,8 @@ def top_genres_for_users_():
 @app.get("/total_delays")
 def total_delays_():
     return total_delays()
+
+@app.get("/check_db")
+def check_db_():
+    return os.path.exists(DB)
+
