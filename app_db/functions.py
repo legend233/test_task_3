@@ -177,7 +177,7 @@ def total_count_books() -> list:
 def total_count_users() -> list:
     """Выводит всех посетителей в библиотеке"""
     with SQL() as cursor:
-        return cursor.execute("SELECT * FROM users}").fetchall()
+        return cursor.execute("SELECT * FROM users").fetchall()
 
 
 def total_count_rent() -> list:
@@ -260,9 +260,3 @@ def total_delays() -> list:
             LEFT JOIN users ON rent_journal.fk_user_id = users.user_id
             WHERE (date_stop > date_expected_stop) or (date_stop IS NULL and current_timestamp > date_expected_stop)
             ORDER BY fk_user_id""").fetchall()
-
-
-if __name__ == '__main__':
-    for _ in total_delays():
-
-        print(_)
