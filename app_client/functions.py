@@ -4,6 +4,8 @@ from settings import SERVER, PORT
 HOST = f"http://{SERVER}:{PORT}"
 
 
+def create_tables():
+    return requests.get(HOST + "/create_tables").json()
 
 def add_book(title: str, author: str, genre: str) -> list:
     return requests.get(HOST + f"/add_book?title={title}&author={author}&genre={genre}").json()
@@ -56,3 +58,9 @@ def top_genres_for_users() -> list:
 
 def total_delays() -> list:
     return requests.get(HOST + "/total_delays").json()
+
+def check_db():
+    return requests.get(HOST + "/check_db").json()
+
+def create_test_data():
+    return requests.get(HOST + "/create_test_data").json()
