@@ -169,7 +169,7 @@ def total_count_books() -> list:
     """Выводит все книги в библиотеке"""
     with SQL() as cursor:
         return cursor.execute(
-            """SELECT b.book_id, b.title, b.author, g.genre
+            """SELECT b.book_id, b.title, b.author, g.genre, b.cur_journal_id
             FROM books b
             LEFT JOIN genres g ON b.genre_id = g.genre_id""").fetchall()
 
