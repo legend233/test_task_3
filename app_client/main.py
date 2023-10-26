@@ -9,6 +9,7 @@ from functions import (create_tables, add_book, delete_book, edit_book,
 from rich.table import Table
 from rich.console import Console
 from rich import print
+from rich.prompt import Prompt, Confirm
 import os
 
 console = Console()
@@ -75,7 +76,7 @@ def menu_books():
         table_comands.add_row("q", "Назад")
         console.print(table_comands, justify="left")
     
-        choice = input("введите # команды: ").lower()
+        choice = Prompt.ask("введите # команды:", choices=["1", "2", "3", "4", "5", "q"])
         if choice == "1" and (cur_page+1)*count_rows < len(books):
             cur_page += 1
         elif choice == "2" and (cur_page-1)*count_rows >= 0:
@@ -97,8 +98,6 @@ def menu_books():
         elif choice == "q":
             cur_page = 0
             return ""
-        else:
-            print("Неверный ввод. Попробуйте снова.")
         
 
 def menu_add_book():
@@ -120,7 +119,7 @@ def menu_add_book():
     table.add_row(*book)
     console.print(table, justify="center")
 
-    if input("Добавить книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask("Добавить книгу?"):
         return book
     else:
         return None
@@ -137,7 +136,7 @@ def menu_delete_book():
     
     book_id = int(answer)
 
-    if input(f"Удалить книгу с id = {book_id}? да/нет(y/n): ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask(f"Удалить книгу с id = {book_id}?"):
         return book_id
     else:
         return None
@@ -173,7 +172,7 @@ def menu_edit_book(books):
     console.print(table, justify="center")
 
 
-    if input("Редактировать книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask("Редактировать книгу?"):
         return new_book
     else:
         return None
@@ -205,7 +204,7 @@ def menu_users():
         table_comands.add_row("q", "Назад")
         console.print(table_comands, justify="left")
     
-        choice = input("введите # команды: ").lower()
+        choice = Prompt.ask("введите # команды: ", choices=["1", "2", "3", "4", "5", "q"])
         if choice == "1" and (cur_page+1)*count_rows < len(users):
             cur_page += 1
         elif choice == "2" and (cur_page-1)*count_rows >= 0:
@@ -227,8 +226,6 @@ def menu_users():
         elif choice == "q":
             cur_page = 0
             return ""
-        else:
-            print("Неверный ввод. Попробуйте снова.")
 
 
 def menu_add_user():
@@ -250,7 +247,7 @@ def menu_add_user():
     table.add_row(*user)
     console.print(table, justify="center")
 
-    if input("Добавить посетителя? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask("Добавить посетителя?: "):
         return user
     else:
         return None
@@ -267,7 +264,7 @@ def menu_delete_user():
     
     user_id = int(answer)
 
-    if input(f"Удалить посетителя с id = {user_id}? да/нет(y/n): ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask(f"Удалить посетителя с id = {user_id}? "):
         return user_id
     else:
         return None
@@ -303,7 +300,7 @@ def menu_edit_user(users):
     console.print(table, justify="center")
 
 
-    if input("Редактировать книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+    if Confirm.ask("Редактировать книгу?: "):
         return new_user
     else:
         return None
@@ -337,7 +334,7 @@ def main():
         else:
             menu_start()
             print("Неверный ввод. Попробуйте снова.")
-        choice = input("введите # команды: ").lower()
+        choice = Prompt.ask("Введите # команды:", choices=["1", "2", "3", "4", "q"], )
         
         
 if __name__ == "__main__":
