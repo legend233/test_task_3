@@ -12,6 +12,11 @@ from rich import print
 import os
 
 console = Console()
+count_rows = 10
+
+
+def utf_valid(new_data):
+    return True
 
 def menu_create_tables():
     table = Table(title="БАЗЫ ДАННЫХ НЕ ОБНАРУЖЕНО", show_header=True)
@@ -43,32 +48,142 @@ def menu_start():
     table.add_row("q", "Выход")
     console.print(table, justify="center")
 
+
 def menu_books():
-    table = Table(title="Книги", show_header=True)
-    titles = ("id", "Название", "Автор", "Жанр", "последняя\nзапись в журнале")
+    """Отображает все книги в таблице и вводит команды о редактировании"""
+    cur_page = 0
+    choice = None
+    while True:
+        os.system('clear')
+        table = Table(title=f"-- Книги -- стр.{cur_page+1}", show_header=True)
+        titles = ("id", "Название", "Автор", "Жанр", "последняя\nзапись в журнале")
+        for title in titles:
+            table.add_column(title, style="cyan", header_style="red")
+        books = total_count_books()
+        start_p = cur_page*count_rows
+        for row in books[start_p:start_p+count_rows]:
+            table.add_row(*map(str, row))
+        console.print(table, justify="center")
+
+        table_comands = Table()
+        titles2 = ("#", "Команда")
+        commands = ["Следующая страница", "Предыдущая страница", "Добавить книгу", "Удалить книгу", "Изменить книгу"]
+        for title in titles2:
+            table_comands.add_column(title, style="cyan", header_style="red")
+        for index, comand in enumerate(commands):
+            table_comands.add_row(str(index + 1), comand)
+        table_comands.add_row("q", "Назад")
+        console.print(table_comands, justify="left")
+    
+        choice = input("введите # команды: ").lower()
+        if choice == "1" and (cur_page+1)*count_rows < len(books):
+            cur_page += 1
+        elif choice == "2" and (cur_page-1)*count_rows >= 0:
+            cur_page -= 1
+        elif choice == "3":
+            book = menu_add_book()
+            if book:
+                add_book(*book)
+            return ""
+        elif choice == "4":
+            book_id = menu_delete_book()
+            if book_id:
+                delete_book(book_id)
+        elif choice == "5":
+            new_book = menu_edit_book(books)
+            if new_book:
+                edit_book(*new_book)
+            return ""
+        elif choice == "q":
+            cur_page = 0
+            return ""
+        else:
+            print("Неверный ввод. Попробуйте снова.")
+        
+
+def menu_add_book():
+    os.system('clear')
+    console.print("ДОБАВЛЕНИЕ НОВОЙ КНИГИ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+    book = []
+    titles = ["Название книги", "Автор", "Жанр"]
     for title in titles:
-        table.add_column(title, style="cyan", header_style="red")
-    for row in total_count_books():
-        table.add_row(*map(str, row))
+        new_data = input(f"\rВведите - {title}: ")
+        if new_data and utf_valid(new_data):
+            book.append(new_data)
+        else:
+            book.append("None")
+    # рисуем табличку
+    table = Table()
+    for title in titles:
+        table.add_column(title, header_style="red")
+    table.add_row(*book)
     console.print(table, justify="center")
 
-    table_comands = Table()
-    titles2 = ("#", "Команда")
-    commands = ["Добавить книгу", "Удалить книгу", "Изменить книгу"]
-    for title in titles2:
-        table_comands.add_column(title, style="cyan", header_style="red")
-    for index, comand in enumerate(commands):
-        table_comands.add_row(str(index + 1), comand)
-    table_comands.add_row("q", "Назад")
-    console.print(table_comands, justify="left")
-def main():
-    
-    choice = None
+    if input("Добавить книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+        return book
+    else:
+        return None
 
+def menu_delete_book():
+    console.print("УДАЛЕНИЕ КНИГИ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+
+    answer = input(f"Введите ID книги: ")
+    while not answer.isdigit() or answer == "":
+        print("Неверный ввод. Попробуйте снова.")
+        answer = input(f"Введите ID книги: ")
+    
+    book_id = int(answer)
+
+    if input(f"Удалить книгу с id = {book_id}? да/нет(y/n): ").lower() in ["yes", "да", 'y', "д"]:
+        return book_id
+    else:
+        return None
+
+
+def menu_edit_book(book):
+    console.print("РЕДАКТИРОВАНИЕ КНИГИ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+
+    answer = input(f"Введите ID книги: ")
+    while not answer.isdigit():
+        print(f"Неверный ввод: {answer}. Попробуйте снова.")
+        answer = input(f"Введите ID книги: ")
+    
+    if not answer:
+        return None
+
+    book_id = answer
+    old_book = list(filter(lambda x: x[0] == int(book_id), book))[0]
+    new_book = [book_id,]
+    titles = ["Название книги", "Автор", "Жанр"]
+    for title, old_data in zip(titles, old_book[1:]):
+        new_data = input(f"\rВведите - {title}: ")
+        if new_data and utf_valid(new_data):
+            new_book.append(new_data)
+        else:
+            new_book.append(old_data)
+    # рисуем табличку
+    table = Table()
+    for title in titles:
+        table.add_column(title, header_style="red")
+    table.add_row(*new_book[1:])
+    console.print(table, justify="center")
+
+
+    if input("Редактировать книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+        return new_book
+    else:
+        return None
+
+
+def main():
+    choice = ""
     while True:
         os.system('clear')
         console.print("АПР БИБЛИОТЕКАРЬ", justify='center', style="Red")
-        if choice == None:
+        if choice == "":
             if check_db():
                 menu_start()
             else:
@@ -79,16 +194,19 @@ def main():
             console.print("\nДо свидания!", justify='center', style="Red")
             break
         elif choice == "1":
-            menu_books()
+            choice = menu_books()
+            continue
         elif choice == "2":
             pass
         elif choice == "3":
             pass
         elif choice == "4":
             pass
-
+        else:
+            menu_start()
+            print("Неверный ввод. Попробуйте снова.")
         choice = input("введите # команды: ").lower()
         
-
+        
 if __name__ == "__main__":
     main()
