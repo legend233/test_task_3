@@ -125,6 +125,7 @@ def menu_add_book():
     else:
         return None
 
+
 def menu_delete_book():
     console.print("УДАЛЕНИЕ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
@@ -142,7 +143,7 @@ def menu_delete_book():
         return None
 
 
-def menu_edit_book(book):
+def menu_edit_book(books):
     console.print("РЕДАКТИРОВАНИЕ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
 
@@ -155,7 +156,7 @@ def menu_edit_book(book):
         return None
 
     book_id = answer
-    old_book = list(filter(lambda x: x[0] == int(book_id), book))[0]
+    old_book = list(filter(lambda x: x[0] == int(book_id), books))[0]
     new_book = [book_id,]
     titles = ["Название книги", "Автор", "Жанр"]
     for title, old_data in zip(titles, old_book[1:]):
@@ -174,6 +175,136 @@ def menu_edit_book(book):
 
     if input("Редактировать книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
         return new_book
+    else:
+        return None
+
+
+def menu_users():
+    """Отображает всех посетителей в таблице и вводит команды о редактировании"""
+    cur_page = 0
+    choice = None
+    while True:
+        os.system('clear')
+        table = Table(title=f"-- Посетители -- стр.{cur_page+1}", show_header=True)
+        titles = ("id", "Имя", "Фамилия")
+        for title in titles:
+            table.add_column(title, style="cyan", header_style="red")
+        users = total_count_users()
+        start_p = cur_page*count_rows
+        for row in users[start_p:start_p+count_rows]:
+            table.add_row(*map(str, row))
+        console.print(table, justify="center")
+
+        table_comands = Table()
+        titles2 = ("#", "Команда")
+        commands = ["Следующая страница", "Предыдущая страница", "Добавить посетителя", "Удалить посетителя", "Изменить посетителя"]
+        for title in titles2:
+            table_comands.add_column(title, style="cyan", header_style="red")
+        for index, comand in enumerate(commands):
+            table_comands.add_row(str(index + 1), comand)
+        table_comands.add_row("q", "Назад")
+        console.print(table_comands, justify="left")
+    
+        choice = input("введите # команды: ").lower()
+        if choice == "1" and (cur_page+1)*count_rows < len(users):
+            cur_page += 1
+        elif choice == "2" and (cur_page-1)*count_rows >= 0:
+            cur_page -= 1
+        elif choice == "3":
+            user = menu_add_user()
+            if user:
+                add_user(*user)
+            return ""
+        elif choice == "4":
+            user_id = menu_delete_user()
+            if user_id:
+                delete_user(user_id) # TODO  проверить выход из функции
+        elif choice == "5":
+            new_user = menu_edit_user(users)
+            if new_user:
+                edit_user(*new_user)
+            return ""
+        elif choice == "q":
+            cur_page = 0
+            return ""
+        else:
+            print("Неверный ввод. Попробуйте снова.")
+
+
+def menu_add_user():
+    os.system('clear')
+    console.print("ДОБАВЛЕНИЕ НОВОГО ПОСЕТИТЕЛЯ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+    user = []
+    titles = ["Имя", "Фамилия"]
+    for title in titles:
+        new_data = input(f"\rВведите - {title}: ")
+        if new_data and utf_valid(new_data):
+            user.append(new_data)
+        else:
+            user.append("None")
+    # рисуем табличку
+    table = Table()
+    for title in titles:
+        table.add_column(title, header_style="red")
+    table.add_row(*user)
+    console.print(table, justify="center")
+
+    if input("Добавить посетителя? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+        return user
+    else:
+        return None
+
+
+def menu_delete_user():
+    console.print("УДАЛЕНИЕ ПОСЕТИТЕЛЯ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+
+    answer = input("Введите ID посетителя: ")
+    while not answer.isdigit() or answer == "":
+        print("Неверный ввод. Попробуйте снова.")
+        answer = input("Введите ID посетителя: ")
+    
+    user_id = int(answer)
+
+    if input(f"Удалить посетителя с id = {user_id}? да/нет(y/n): ").lower() in ["yes", "да", 'y', "д"]:
+        return user_id
+    else:
+        return None
+
+
+def menu_edit_user(users):
+    console.print("РЕДАКТИРОВАНИЕ ПОСЕТИТЕЛЯ", style="red")
+    console.print("Нажми Enter, чтобы пропустить")
+
+    answer = input(f"Введите ID пользователя: ")
+    while not answer.isdigit():
+        print(f"Неверный ввод: {answer}. Попробуйте снова.")
+        answer = input(f"Введите ID пользователя: ")
+    
+    if not answer:
+        return None
+
+    user_id = answer
+    old_user = list(filter(lambda x: x[0] == int(user_id), users))[0]
+    new_user = [user_id,]
+    titles = ["Имя", "Фамилия"]
+    for title, old_data in zip(titles, old_user[1:]):
+        new_data = input(f"\rВведите - {title}: ")
+        if new_data and utf_valid(new_data):
+            new_user.append(new_data)
+        else:
+            new_user.append(old_data)
+    # рисуем табличку
+    table = Table()
+    for title in titles:
+        table.add_column(title, header_style="red")
+    table.add_row(*new_user[1:])
+    console.print(table, justify="center")
+
+
+    if input("Редактировать книгу? да/нет: ").lower() in ["yes", "да", 'y', "д"]:
+        return new_user
     else:
         return None
 
@@ -197,7 +328,8 @@ def main():
             choice = menu_books()
             continue
         elif choice == "2":
-            pass
+            choice = menu_users()
+            continue
         elif choice == "3":
             pass
         elif choice == "4":
