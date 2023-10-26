@@ -85,7 +85,6 @@ def menu_books():
             book = menu_add_book()
             if book:
                 add_book(*book)
-            return ""
         elif choice == "4":
             book_id = menu_delete_book()
             if book_id:
@@ -94,7 +93,6 @@ def menu_books():
             new_book = menu_edit_book(books)
             if new_book:
                 edit_book(*new_book)
-            return ""
         elif choice == "q":
             cur_page = 0
             return ""
@@ -213,16 +211,14 @@ def menu_users():
             user = menu_add_user()
             if user:
                 add_user(*user)
-            return ""
         elif choice == "4":
             user_id = menu_delete_user()
             if user_id:
-                delete_user(user_id) # TODO  проверить выход из функции
+                delete_user(user_id)
         elif choice == "5":
             new_user = menu_edit_user(users)
             if new_user:
                 edit_user(*new_user)
-            return ""
         elif choice == "q":
             cur_page = 0
             return ""
@@ -306,6 +302,137 @@ def menu_edit_user(users):
         return None
 
 
+def menu_journal():
+    """Отображает все книги в таблице и вводит команды о редактировании"""
+    choice = None
+    
+    os.system('clear')
+    table_comands = Table()
+    titles2 = ("#", "Команда")
+    commands = ["Выдать книгу в аренду", "Вернуть книгу в библиотеку"]
+    for title in titles2:
+        table_comands.add_column(title, style="cyan", header_style="red")
+    for index, comand in enumerate(commands):
+        table_comands.add_row(str(index + 1), comand)
+    table_comands.add_row("q", "Назад")
+    console.print(table_comands, justify="center")
+    choice = Prompt.ask("введите # команды:", choices=["1", "2", "q"])
+    if choice == "1":
+        book_id = menu_search_book_id()
+        if not book_id:
+            return ""
+        user_id = menu_search_user_id()
+        if book_id and user_id:
+            answer = ""
+        while not answer.isdigit():
+            answer = input("На какой срок выдать книгу(в днях): ")
+        days = int(answer)
+        add_getbook_to_journal(book_id, user_id, days_to_return=days)
+
+    elif choice == "2":
+        book_id = menu_search_book_id()
+        if not book_id:
+            return ""
+        add_returnbook_to_journal(book_id)
+
+    return ""
+
+def menu_search_book_id():
+    books = total_count_books()
+    while True:
+        books = search_books(books)
+        table_comands = Table()
+        titles2 = ("#", "Команда")
+        commands = ["Выдать книгу в аренду(ввести ID)", "Продолжить поиск"]
+        for title in titles2:
+            table_comands.add_column(title, style="cyan", header_style="red")
+        for index, comand in enumerate(commands):
+            table_comands.add_row(str(index + 1), comand)
+        table_comands.add_row("q", "Назад")
+        console.print(table_comands, justify="left")
+
+        choice = Prompt.ask("введите # команды:", choices=["1", "2", "q"])
+        if choice == "1":
+            answer = ""
+            while not answer.isdigit():
+                answer = input("Введите ID книги: ")
+            book_id = answer
+            return book_id
+        elif choice == "2":
+            continue
+        elif choice == "q":
+            return ""
+
+
+def search_books(books):
+    os.system('clear')
+    req = input("Введите название книги для поиска: ")
+    indexs = []
+    for index, book in enumerate(books):
+        if req in book[1]:
+            indexs.append(index)
+    new_books = []
+    for index in indexs:
+        new_books.append(books[index])
+
+    table = Table(title=f"-- Результат поиска -- ", show_header=True)
+    titles = ("id", "Название", "Автор", "Жанр", "последняя\nзапись в журнале")
+    for title in titles:
+        table.add_column(title, style="cyan", header_style="red")
+    for row in new_books:
+        table.add_row(*map(str, row))
+    console.print(table, justify="center")
+    return new_books
+
+
+def menu_search_user_id():
+    users = total_count_users()
+    while True:
+        users = search_users(users)
+
+        table_comands = Table()
+        titles2 = ("#", "Команда")
+        commands = ["Выдать посетителю книгу(ввести ID)", "Продолжить поиск"]
+        for title in titles2:
+            table_comands.add_column(title, style="cyan", header_style="red")
+        for index, comand in enumerate(commands):
+            table_comands.add_row(str(index + 1), comand)
+        table_comands.add_row("q", "Назад")
+        console.print(table_comands, justify="left")
+
+        choice = Prompt.ask("введите # команды:", choices=["1", "2", "q"])
+        if choice == "1":
+            answer = ""
+            while not answer.isdigit():
+                answer = input("Введите ID посетителя: ")
+            user_id = answer
+            return user_id
+        elif choice == "2":
+            continue
+        elif choice == "q":
+            return ""
+
+
+def search_users(users):
+    os.system('clear')
+    req = input("Введите Фамилию посетителя для поиска: ")
+    indexs = []
+    for index, user in enumerate(users):
+        if req in user[-1]:
+            indexs.append(index)
+    new_users = []
+    for index in indexs:
+        new_users.append(users[index])
+
+    table = Table(title=f"-- Результат поиска -- ", show_header=True)
+    titles = ("id", "Имя", "Фамилия")
+    for title in titles:
+        table.add_column(title, style="cyan", header_style="red")
+    for row in new_users:
+        table.add_row(*map(str, row))
+    console.print(table, justify="center")
+    return new_users
+
 def main():
     choice = ""
     while True:
@@ -328,7 +455,8 @@ def main():
             choice = menu_users()
             continue
         elif choice == "3":
-            pass
+            choice = menu_journal()
+            continue
         elif choice == "4":
             pass
         else:
