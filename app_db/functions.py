@@ -209,7 +209,6 @@ def total_last_date() -> list:
             ELSE date_stop END AS last_date FROM rent_journal WHERE rent_journal.fk_user_id = users.user_id)
             FROM users""").fetchall()
 
-
 def max_reading_author() -> list:
     """Выводит рейтинг самых читаемых авторов у посетителей"""
     with SQL() as cursor:
