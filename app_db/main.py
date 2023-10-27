@@ -90,7 +90,7 @@ def total_delays_():
 
 @app.get("/check_db")
 def check_db_():
-    return os.path.exists(DB)
+    return os.path.exists(DB + "/sqlite.db")
 
 @app.get("/create_test_data")
 def create_test_data_():

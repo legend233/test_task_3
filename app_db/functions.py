@@ -8,7 +8,7 @@ def create_connection(path: str):
     """Создает соединение с базой данных SQLite"""
     connection = None
     try:
-        connection = connect(path)
+        connection = connect(f"{path}/sqlite.db")
         print("Connection to SQLite DB successful")
     except Error as e:
         print(f"The error '{e}' occurred")
