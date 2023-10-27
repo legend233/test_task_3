@@ -4,3 +4,4 @@ import os
 load_dotenv()
 SERVER = os.getenv('SERVER')
 PORT = os.getenv('PORT')
+OUTPUTFOLDER = os.getenv('OUTPUTFOLDER')
