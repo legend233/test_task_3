@@ -15,7 +15,7 @@ import os
 
 app = FastAPI()
 
-
+# далее одноименныеручки для дергания через get запросы
 @app.get("/create_tables")
 def create_tables_():
     return create_tables()

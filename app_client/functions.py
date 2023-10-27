@@ -3,7 +3,7 @@ from settings import SERVER, PORT
 
 HOST = f"http://{SERVER}:{PORT}"
 
-
+# одноименные ручкам от сервера с БД get запросы
 def create_tables():
     return requests.get(HOST + "/create_tables").json()
 
