@@ -4,7 +4,8 @@ from functions import (create_tables, add_book, delete_book, edit_book,
                         total_count_books, total_count_users,
                         total_count_rent, total_count_notreturn,
                         total_last_date, max_reading_author, top_genres,
-                        top_genres_for_users, total_delays, check_db)
+                        top_genres_for_users, total_delays, check_db,
+                        create_test_data)
 
 from rich.table import Table
 from rich.console import Console
@@ -31,9 +32,11 @@ def utf_valid(data: str):
         return False
 
 def convert_date(date):
+    """Отрезааем от datetime лишнее"""
     return date[:date.find(".")]
 
 def menu_create_tables():
+    """Меню создания таблиц. Если базы не обнаружили"""
     table = Table(title="БАЗЫ ДАННЫХ НЕ ОБНАРУЖЕНО", show_header=True)
     comands = ["Создать пустую базу", "Создать базу с тестовыми данными"]
     titles = ("#", "Команда")
@@ -47,10 +50,11 @@ def menu_create_tables():
     if choice == "1":
         create_tables()
     elif choice == "2":
-        pass
+        create_test_data()
     return None
 def menu_start():
-    table = Table(title="МЕНЮ", show_header=True)
+    """Стартовое меню"""
+    table = Table(title="ГЛАВНОЕ МЕНЮ", show_header=True)
     comands = ["Добавить/Удалить/Изменить книгу",
                 "Добавить/Удалить/Изменить пользователя",
                 "Добавить Факт взятия/возврата книги",
@@ -70,7 +74,7 @@ def menu_books():
     choice = None
     while True:
         os.system('clear')
-        table = Table(title=f"-- Книги -- стр.{cur_page+1}", show_header=True)
+        table = Table(title=f"КНИГИ стр.{cur_page+1}", show_header=True)
         titles = ("id", "Название", "Автор", "Жанр", "последняя\nзапись в журнале")
         for title in titles:
             table.add_column(title, style="cyan", header_style="red")
@@ -109,10 +113,11 @@ def menu_books():
                 edit_book(*new_book)
         elif choice == "q":
             cur_page = 0
-            return ""
+            return None
         
 
 def menu_add_book():
+    """Меню добавления книги"""
     os.system('clear')
     console.print("ДОБАВЛЕНИЕ НОВОЙ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
@@ -138,6 +143,7 @@ def menu_add_book():
 
 
 def menu_delete_book():
+    """Меню удаления книги"""
     console.print("УДАЛЕНИЕ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
 
@@ -155,6 +161,7 @@ def menu_delete_book():
 
 
 def menu_edit_book(books):
+    """Меню редактирования книги"""
     console.print("РЕДАКТИРОВАНИЕ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
 
@@ -191,12 +198,12 @@ def menu_edit_book(books):
 
 
 def menu_users():
-    """Отображает всех посетителей в таблице и вводит команды о редактировании"""
+    """Отображает всех читателей в таблице и вводит команды о редактировании"""
     cur_page = 0
     choice = None
     while True:
         os.system('clear')
-        table = Table(title=f"-- Посетители -- стр.{cur_page+1}", show_header=True)
+        table = Table(title=f"Читателя стр.{cur_page+1}", show_header=True)
         titles = ("id", "Имя", "Фамилия")
         for title in titles:
             table.add_column(title, style="cyan", header_style="red")
@@ -208,7 +215,7 @@ def menu_users():
 
         table_comands = Table()
         titles2 = ("#", "Команда")
-        commands = ["Следующая страница", "Предыдущая страница", "Добавить посетителя", "Удалить посетителя", "Изменить посетителя"]
+        commands = ["Следующая страница", "Предыдущая страница", "Добавить Читателя", "Удалить читателя", "Изменить читателя"]
         for title in titles2:
             table_comands.add_column(title, style="cyan", header_style="red")
         for index, comand in enumerate(commands):
@@ -235,12 +242,13 @@ def menu_users():
                 edit_user(*new_user)
         elif choice == "q":
             cur_page = 0
-            return ""
+            return None
 
 
 def menu_add_user():
+    """Меню добавления читателя"""
     os.system('clear')
-    console.print("ДОБАВЛЕНИЕ НОВОГО ПОСЕТИТЕЛЯ", style="red")
+    console.print("ДОБАВЛЕНИЕ НОВОГО ЧИТАТЕЛЯ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
     user = []
     titles = ["Имя", "Фамилия"]
@@ -257,37 +265,39 @@ def menu_add_user():
     table.add_row(*user)
     console.print(table, justify="center")
 
-    if Confirm.ask("Добавить посетителя?: "):
+    if Confirm.ask("Добавить читателя?: "):
         return user
     else:
         return None
 
 
 def menu_delete_user():
-    console.print("УДАЛЕНИЕ ПОСЕТИТЕЛЯ", style="red")
+    """Меню удаления читателя"""
+    console.print("УДАЛЕНИЕ ЧИТАТЕЛЯ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
 
-    answer = input("Введите ID посетителя: ")
+    answer = input("Введите ID читателя: ")
     while not answer.isdigit() or answer == "":
         print("Неверный ввод. Попробуйте снова.")
-        answer = input("Введите ID посетителя: ")
+        answer = input("Введите ID читателя: ")
     
     user_id = int(answer)
 
-    if Confirm.ask(f"Удалить посетителя с id = {user_id}? "):
+    if Confirm.ask(f"Удалить читателя с id = {user_id}? "):
         return user_id
     else:
         return None
 
 
 def menu_edit_user(users):
-    console.print("РЕДАКТИРОВАНИЕ ПОСЕТИТЕЛЯ", style="red")
+    """Меню редактирования читателя"""
+    console.print("РЕДАКТИРОВАНИЕ ЧИТАТЕЛЯ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
 
-    answer = input(f"Введите ID пользователя: ")
+    answer = input(f"Введите ID читателя: ")
     while not answer.isdigit():
         print(f"Неверный ввод: {answer}. Попробуйте снова.")
-        answer = input(f"Введите ID пользователя: ")
+        answer = input(f"Введите ID читателя: ")
     
     if not answer:
         return None
@@ -353,6 +363,7 @@ def menu_journal():
     return None
 
 def menu_search_book_id():
+    """Меню поиска книги"""
     books = total_count_books()
     while True:
         search_books(books)
@@ -380,6 +391,7 @@ def menu_search_book_id():
 
 
 def search_books(books):
+    """Поиск книги"""
     os.system('clear')
     req = input("Введите название книги для поиска: ")
     indexs = []
@@ -401,13 +413,14 @@ def search_books(books):
 
 
 def menu_search_user_id():
+    """Меню поиска читателя"""
     users = total_count_users()
     while True:
         search_users(users)
 
         table_comands = Table()
         titles2 = ("#", "Команда")
-        commands = ["Выдать посетителю книгу(ввести ID)", "Продолжить поиск"]
+        commands = ["Выдать читателю книгу(ввести ID)", "Продолжить поиск"]
         for title in titles2:
             table_comands.add_column(title, style="cyan", header_style="red")
         for index, comand in enumerate(commands):
@@ -419,7 +432,7 @@ def menu_search_user_id():
         if choice == "1":
             answer = ""
             while not answer.isdigit():
-                answer = input("Введите ID посетителя: ")
+                answer = input("Введите ID читателя: ")
             user_id = answer
             return user_id
         elif choice == "2":
@@ -429,8 +442,9 @@ def menu_search_user_id():
 
 
 def search_users(users):
+    """Поиск читателя"""
     os.system('clear')
-    req = input("Введите Фамилию посетителя для поиска: ")
+    req = input("Введите Фамилию читателя для поиска: ")
     indexs = []
     for index, user in enumerate(users):
         if req in user[-1]:
@@ -449,6 +463,7 @@ def search_users(users):
 
 
 def menu_reports():
+    """Меню отчетов"""
     table = Table(title="Отчеты", show_header=True)
     comands = ["Сколько книг есть в библиотеке",
                 "Сколько зарегистрировано читателей",
@@ -472,8 +487,6 @@ def menu_reports():
         name = "КНИГИ"
         titles = ("id", "Название", "Автор", "Жанр", "посл.запись в журнале")
         data = total_count_books()
-        if report(name, titles, data):
-            report_save_to_file(name, titles, data)
                 
     elif choice == "2":
         name = "ЧИТАТЕЛИ"
@@ -513,19 +526,20 @@ def menu_reports():
         titles = ("id", "ИМЯ", "ФАМИЛИЯ", "НАЗВАНИЕ КНИГИ", "ВОЗВРАЩЕНА", "ДОЛЖНА БЫТЬ ВОЗВРАЩЕНА")
         data = total_delays()
         data = [row[:-2]+[convert_date(row[-2]), convert_date(row[-1])] for row in data if row[-2]]
-    else:
+    elif choice == "q":
         return None
     name = choice + " " + name
     if report(name, titles, data):
-            report_save_to_file(name, titles, data)
-    with Progress() as progress:
-        task = progress.add_task("СОХРАНЯЮ...", total=10)
-        for step in range(20):
-            progress.update(task, advance=1)
-            sleep(0.1)
+        report_save_to_file(name, titles, data)
+        with Progress() as progress:
+            task = progress.add_task("СОХРАНЯЮ...", total=10)
+            for step in range(20):
+                progress.update(task, advance=1)
+                sleep(0.1)
     return None
 
 def report(name, titles, data):
+    """Выводит отчет на экран"""
     cur_page = 0
     choice = None
     while True:
@@ -562,6 +576,7 @@ def report(name, titles, data):
             return None
 
 def report_save_to_file(name, titles, data):
+    """Сохраняет отчет в файл"""
     if not os.path.exists(OUTPUTFOLDER):
         os.system('mkdir ' + OUTPUTFOLDER)
     with open(f"{OUTPUTFOLDER}/ОТЧЕТ {name} - {datetime.now().strftime('%d.%m.%Y %H.%M.%S')}.csv", "w", newline="" , encoding="utf-8-sig") as f:
@@ -570,6 +585,7 @@ def report_save_to_file(name, titles, data):
         csv_writer.writerows(data)
 
 def main():
+    """Главный цикл"""
     choice = None
     while True:
         os.system('clear')
@@ -601,3 +617,4 @@ def main():
         
 if __name__ == "__main__":
     main()
+    

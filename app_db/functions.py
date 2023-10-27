@@ -39,13 +39,6 @@ def create_tables():
     return True
 
 
-def query(sql: str) -> list:
-    """Выводит информацию из базы данных"""
-    with SQL() as cursor:
-        rows = cursor.execute(sql)
-        return rows.fetchall()
-
-
 def add_book(title: str, author: str, genre: str) -> bool:
     """Добавляет книгу в базу данных"""
     with SQL() as cursor:
@@ -259,3 +252,78 @@ def total_delays() -> list:
             LEFT JOIN users ON rent_journal.fk_user_id = users.user_id
             WHERE (date_stop > date_expected_stop) or (date_stop IS NULL and current_timestamp > date_expected_stop)
             ORDER BY fk_user_id""").fetchall()
+
+
+def create_test_data():
+    """Создание тестовых данных"""
+    create_tables()
+    # книги
+    add_book("The Great Gatsby", "F. Scott Fitzgerald", "Fiction")
+    add_book("To Kill a Mockingbird", "Harper Lee", "Fiction")
+    add_book("1984", "George Orwell", "Science Fiction")
+    add_book("Pride and Prejudice", "Jane Austen", "Romance")
+    add_book("The Catcher in the Rye", "J.D. Salinger", "Fiction")
+    add_book("The Hobbit", "J.R.R. Tolkien", "Fantasy")
+    add_book("Harry Potter and the Philosopher's Stone", "J.K. Rowling", "Fantasy")
+    add_book("The Lord of the Rings", "J.R.R. Tolkien", "Fantasy")
+    add_book("To the Lighthouse", "Virginia Woolf", "Fiction")
+    add_book("Moby-Dick", "Herman Melville", "Adventure")
+    add_book("The Odyssey", "Homer", "Epic Poetry")
+    add_book("The Adventures of Huckleberry Finn", "Mark Twain", "Adventure")
+    add_book("The Great Expectations", "Charles Dickens", "Classic")
+    add_book("The Alchemist", "Paulo Coelho", "Fiction")
+    add_book("Crime and Punishment", "Fyodor Dostoevsky", "Psychological Fiction")
+    add_book("To Kill a Mockingbird", "Harper Lee", "Fiction")
+    add_book("Go Set a Watchman", "Harper Lee", "Fiction")
+    add_book("To Kill a Mockingbird", "Harper Lee", "Classic")
+    add_book("To Kill a Mockingbird", "Harper Lee", "Literature")
+    add_book("To Kill a Mockingbird", "Harper Lee", "Drama")
+
+
+    # пользователи
+    add_user("John", "Doe")
+    add_user("Jane", "Smith")
+    add_user("Michael", "Johnson")
+    add_user("Emily", "Davis")
+    add_user("David", "Wilson")
+    add_user("Sarah", "Anderson")
+    add_user("Robert", "Thomas")
+    add_user("Jennifer", "Taylor")
+    add_user("William", "Martinez")
+    add_user("Jessica", "Brown")
+
+    # журнал книг аренда
+    add_getbook_to_journal(1, 1, 14)
+    add_getbook_to_journal(2, 1, 14)
+    add_getbook_to_journal(3, 1, 14)
+    add_getbook_to_journal(4, 1, 14)
+    add_getbook_to_journal(5, 2, 14)
+    add_getbook_to_journal(6, 2, 14)
+    add_getbook_to_journal(7, 2, 14)
+    add_getbook_to_journal(8, 2, 14)
+    add_getbook_to_journal(9, 2, 14)
+    add_getbook_to_journal(10, 3, 14)
+    add_getbook_to_journal(11, 3, 14)
+    add_getbook_to_journal(12, 3, 14)
+    add_getbook_to_journal(13, 3, 14)
+    add_getbook_to_journal(14, 3, 14)
+    add_getbook_to_journal(15, 4, 14)
+    add_getbook_to_journal(16, 4, 14)
+    add_getbook_to_journal(17, 4, 14)
+    add_getbook_to_journal(18, 4, 14)
+    
+    # возврат книг в журнал
+    add_returnbook_to_journal(book_id=1)
+    add_returnbook_to_journal(book_id=2)
+    add_returnbook_to_journal(book_id=3)
+    add_returnbook_to_journal(book_id=4)
+    add_returnbook_to_journal(book_id=5)
+    add_returnbook_to_journal(book_id=6)
+
+
+    # добавляем просрок книги в журнал вручную
+    with SQL() as cursor:
+        date_stop = datetime.datetime.now() + datetime.timedelta(days=14)
+        date_expected_stop = date_stop - datetime.timedelta(days=4)
+        for id in range(12, 17):
+            cursor.execute("""UPDATE rent_journal SET date_stop = ?, date_expected_stop = ? WHERE fk_book_id = ?""", (date_stop, date_expected_stop, id))

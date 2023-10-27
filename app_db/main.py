@@ -8,7 +8,8 @@ from functions import (create_tables, add_book, delete_book, edit_book,
                     total_count_books, total_count_users, 
                     total_count_rent, total_count_notreturn,
                     total_last_date, max_reading_author, top_genres,
-                    top_genres_for_users, total_delays)
+                    top_genres_for_users, total_delays,
+                    create_test_data)
 from settings import DB
 import os
 
@@ -91,3 +92,6 @@ def total_delays_():
 def check_db_():
     return os.path.exists(DB)
 
+@app.get("/create_test_data")
+def create_test_data_():
+    return create_test_data()
