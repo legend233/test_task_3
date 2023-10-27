@@ -9,15 +9,29 @@ from functions import (create_tables, add_book, delete_book, edit_book,
 from rich.table import Table
 from rich.console import Console
 from rich import print
+from rich.progress import Progress
 from rich.prompt import Prompt, Confirm
 import os
+from time import sleep
+from datetime import datetime
+import csv
+from settings import OUTPUTFOLDER
 
 console = Console()
 count_rows = 10
 
 
-def utf_valid(new_data):
-    return True
+def utf_valid(data: str):
+    """Проверка на соответствие строки UTF-8"""
+    try:
+        data.encode('utf-8')
+        return True
+    except UnicodeEncodeError:
+        print("Не соответствует UTF-8")
+        return False
+
+def convert_date(date):
+    return date[:date.find(".")]
 
 def menu_create_tables():
     table = Table(title="БАЗЫ ДАННЫХ НЕ ОБНАРУЖЕНО", show_header=True)
@@ -320,10 +334,11 @@ def menu_journal():
     if choice == "1":
         book_id = menu_search_book_id()
         if not book_id:
-            return ""
+            return None
         user_id = menu_search_user_id()
-        if book_id and user_id:
-            answer = ""
+        if not user_id:
+            return None
+        answer = ""
         while not answer.isdigit():
             answer = input("На какой срок выдать книгу(в днях): ")
         days = int(answer)
@@ -332,15 +347,15 @@ def menu_journal():
     elif choice == "2":
         book_id = menu_search_book_id()
         if not book_id:
-            return ""
+            return None
         add_returnbook_to_journal(book_id)
 
-    return ""
+    return None
 
 def menu_search_book_id():
     books = total_count_books()
     while True:
-        books = search_books(books)
+        search_books(books)
         table_comands = Table()
         titles2 = ("#", "Команда")
         commands = ["Выдать книгу в аренду(ввести ID)", "Продолжить поиск"]
@@ -361,7 +376,7 @@ def menu_search_book_id():
         elif choice == "2":
             continue
         elif choice == "q":
-            return ""
+            return None
 
 
 def search_books(books):
@@ -382,13 +397,13 @@ def search_books(books):
     for row in new_books:
         table.add_row(*map(str, row))
     console.print(table, justify="center")
-    return new_books
+
 
 
 def menu_search_user_id():
     users = total_count_users()
     while True:
-        users = search_users(users)
+        search_users(users)
 
         table_comands = Table()
         titles2 = ("#", "Команда")
@@ -410,7 +425,7 @@ def menu_search_user_id():
         elif choice == "2":
             continue
         elif choice == "q":
-            return ""
+            return None
 
 
 def search_users(users):
@@ -431,14 +446,135 @@ def search_users(users):
     for row in new_users:
         table.add_row(*map(str, row))
     console.print(table, justify="center")
-    return new_users
+
+
+def menu_reports():
+    table = Table(title="Отчеты", show_header=True)
+    comands = ["Сколько книг есть в библиотеке",
+                "Сколько зарегистрировано читателей",
+                "Сколько книг брал каждый читатель за все время",
+                "Сколько книг сейчас находится на руках у каждого читателя",
+                "Дата последнего посещения читателем библиотеки",
+                "Самый читаемый автор",
+                "Самый предпочитаемые читателями жанры по убыванию",
+                "Любимый жанр каждого читателя",
+                "Все читатели и книги, которые они не вернули вовремя."]
+    titles = ("#", "Команда")
+    for title in titles:
+        table.add_column(title, style="cyan", header_style="red")
+    for index, comand in enumerate(comands):
+        table.add_row(str(index + 1), comand)
+    table.add_row("q", "Выход")
+    console.print(table, justify="center")
+    
+    choice = Prompt.ask("введите # команды:", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "q"])
+    if choice == "1":
+        name = "КНИГИ"
+        titles = ("id", "Название", "Автор", "Жанр", "посл.запись в журнале")
+        data = total_count_books()
+        if report(name, titles, data):
+            report_save_to_file(name, titles, data)
+                
+    elif choice == "2":
+        name = "ЧИТАТЕЛИ"
+        titles = ("id", "Имя", "Фамилия")
+        data = total_count_users()
+        
+    elif choice == "3":
+        name = "АРЕНДОВАНЫЕ КНИГИ ЗА ВСЕ ВРЕМЯ"
+        titles = ("id", "Имя", "Фамилия", "Аренда")
+        data = total_count_rent()
+        
+    elif choice == "4":
+        name = "КНИГИ НА РУКАХ У ЧИТАТЕЛЯ"
+        titles = ("id", "Имя", "Фамилия", "Аренда")
+        data = total_count_notreturn()
+
+    elif choice == "5":
+        name = "ДАТА ПОСЛЕДНЕГО ПОСЕЩЕНИЯ БИБЛИОТЕКИ"
+        titles = ("id", "Имя", "Фамилия", "Дата и время")
+        data = total_last_date()
+        data = [row[:-1]+[convert_date(row[-1]),] for row in data if row[-1]]
+        
+    elif choice == "6":
+        name = "САМЫЙ ЧИТАЕМЫЙ АВТОР"
+        titles = ("АВТОР", "КОЛИЧЕСТВО")
+        data = max_reading_author()
+    elif choice == "7": 
+        name = "САМЫЕ ЧИТАЕМЫЕ ЖАНРЫ ПО УБЫВАНИЮ"
+        titles = ("ЖАНР", "КОЛИЧЕСТВО")
+        data = top_genres()
+    elif choice == "8":
+        name = "ЛЮБИМЫЙ ЖАНР ЧИТАТЕЛЯ"
+        titles = ("id", "ИМЯ", "ФАМИЛИЯ", "ЖАНР")
+        data = top_genres_for_users()
+    elif choice == "9": 
+        name = "ЧИТАТЕЛИ И КНИГИ КОТОРЫЕ НЕ ВЕРНУЛИ ВОВРЕМЯ"
+        titles = ("id", "ИМЯ", "ФАМИЛИЯ", "НАЗВАНИЕ КНИГИ", "ВОЗВРАЩЕНА", "ДОЛЖНА БЫТЬ ВОЗВРАЩЕНА")
+        data = total_delays()
+        data = [row[:-2]+[convert_date(row[-2]), convert_date(row[-1])] for row in data if row[-2]]
+    else:
+        return None
+    name = choice + " " + name
+    if report(name, titles, data):
+            report_save_to_file(name, titles, data)
+    with Progress() as progress:
+        task = progress.add_task("СОХРАНЯЮ...", total=10)
+        for step in range(20):
+            progress.update(task, advance=1)
+            sleep(0.1)
+    return None
+
+def report(name, titles, data):
+    cur_page = 0
+    choice = None
+    while True:
+        os.system('clear')
+        table = Table(title=f"{name} стр.{cur_page+1}", show_header=True)
+        for title in titles:
+            table.add_column(title, style="cyan", header_style="red")
+        
+        start_p = cur_page*count_rows
+        for row in data[start_p:start_p+count_rows]:
+            table.add_row(*map(str, row))
+        console.print(table, justify="center")
+
+        table_comands = Table()
+        titles2 = ("#", "Команда")
+        commands = ["Следующая страница", "Предыдущая страница", "Выгрузить в файл"]
+        for title in titles2:
+            table_comands.add_column(title, style="cyan", header_style="red")
+        for index, comand in enumerate(commands):
+            table_comands.add_row(str(index + 1), comand)
+        table_comands.add_row("q", "Назад")
+        console.print(table_comands, justify="left")
+    
+        choice = Prompt.ask("введите # команды:", choices=["1", "2", "3", "q"])
+        if choice == "1" and (cur_page+1)*count_rows < len(data):
+            cur_page += 1
+        elif choice == "2" and (cur_page-1)*count_rows >= 0:
+            cur_page -= 1
+        elif choice == "3":
+            return True
+        
+        elif choice == "q":
+            cur_page = 0
+            return None
+
+def report_save_to_file(name, titles, data):
+    if not os.path.exists(OUTPUTFOLDER):
+        os.system('mkdir ' + OUTPUTFOLDER)
+    with open(f"{OUTPUTFOLDER}/ОТЧЕТ {name} - {datetime.now().strftime('%d.%m.%Y %H.%M.%S')}.csv", "w", newline="" , encoding="utf-8-sig") as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(titles)
+        csv_writer.writerows(data)
 
 def main():
-    choice = ""
+    choice = None
     while True:
         os.system('clear')
         console.print("АПР БИБЛИОТЕКАРЬ", justify='center', style="Red")
-        if choice == "":
+        if choice == None:
             if check_db():
                 menu_start()
             else:
@@ -458,10 +594,8 @@ def main():
             choice = menu_journal()
             continue
         elif choice == "4":
-            pass
-        else:
-            menu_start()
-            print("Неверный ввод. Попробуйте снова.")
+            choice = menu_reports()
+            continue
         choice = Prompt.ask("Введите # команды:", choices=["1", "2", "3", "4", "q"], )
         
         
