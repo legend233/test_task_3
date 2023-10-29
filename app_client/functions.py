@@ -10,7 +10,7 @@ def create_tables():
 def add_book(title: str, author: str, genre: str) -> list:
     return requests.get(HOST + f"/add_book?title={title}&author={author}&genre={genre}").json()
 
-
+# далее одноименные запросы, чтобы дергать на сервере базу данных
 def delete_book(id: int) -> list:
     return requests.get(HOST + f"/delete_book?id={id}").json()
 
