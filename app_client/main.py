@@ -13,6 +13,7 @@ from rich import print
 from rich.progress import Progress
 from rich.prompt import Prompt, Confirm
 import os
+import sys
 from time import sleep
 from datetime import datetime
 import csv
