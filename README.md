@@ -10,20 +10,26 @@
 Подробнее: https://github.com/legend233/test_task_3/tree/main/info (ТЗ + схема БД)
 
 ## Установка приложений (Console)
+    Запускаем Git Bash
+
     git clone https://github.com/legend233/test_task_3.git
 ### Data Base (sqlite + fastapi)
     cd test_task_3/app_db
     pip install -r requirements.txt
-    touch .env
-    echo "DB=/YOUR_DB_FOLDER" >> .env
+    touch .env      (Для создания файла .env в Linux или MacOS, для Windows пропустите эту команду)
+    echo "DB=YOUR_DB_FOLDER" >> .env    (например DB=/home/user/db для Linux, MacOS или DB=C:\db для Windows)
     python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### Client(requests)
+    Запускаем Git Bash в новом окне
+
     cd test_task_3/app_client
     pip install -r requirements.txt
-    touch .env
-    echo "SERVER=YOUR_SERVER_IP" >> .env
+    touch .env      (Для создания файла .env в Linux или MacOS, для Windows пропустите эту команду)
+    echo "SERVER=YOUR_SERVER_IP" >> .env (например SERVER=localhost если сервер запущен на том же компьютере, что и client или SERVER=154.54.55.65 если сервер запущен на другом компьютере. Укажите IP адрес своего сервера)
     echo "PORT=8000" >> .env
-    echo "OUTPUTFOLDER=YOUR_OUTPUT_FOLDER" >> .env
+    echo "OUTPUTFOLDER=YOUR_OUTPUT_FOLDER" >> .env (например OUTPUTFOLDER=/home/user/output для Linux, MacOS или OUTPUTFOLDER=C:\output для Windows)
+
+    выходим из Git Bash и запускаем main.py через shell
     python main.py
 
 ## Установка приложений (Docker)
