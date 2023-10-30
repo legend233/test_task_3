@@ -22,6 +22,14 @@ console = Console()
 count_rows = 10
 
 
+def clear_screen():
+    """Очищает экран"""
+    if sys.platform == "win32": # если плтаформа windows
+        os.system("cls")
+    else: # если плтаформа linux, макос
+        os.system("clear")
+
+
 def utf_valid(data: str):
     """Проверка на соответствие строки UTF-8"""
     try:
@@ -73,7 +81,7 @@ def menu_books():
     cur_page = 0
     choice = None
     while True:
-        os.system('clear')
+        clear_screen()
         table = Table(title=f"КНИГИ стр.{cur_page+1}", show_header=True)
         titles = ("id", "Название", "Автор", "Жанр", "последняя\nзапись в журнале")
         for title in titles:
@@ -118,7 +126,7 @@ def menu_books():
 
 def menu_add_book():
     """Меню добавления книги"""
-    os.system('clear')
+    clear_screen()
     console.print("ДОБАВЛЕНИЕ НОВОЙ КНИГИ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
     book = []
@@ -202,7 +210,7 @@ def menu_users():
     cur_page = 0
     choice = None
     while True:
-        os.system('clear')
+        clear_screen()
         table = Table(title=f"Читателя стр.{cur_page+1}", show_header=True)
         titles = ("id", "Имя", "Фамилия")
         for title in titles:
@@ -247,7 +255,7 @@ def menu_users():
 
 def menu_add_user():
     """Меню добавления читателя"""
-    os.system('clear')
+    clear_screen()
     console.print("ДОБАВЛЕНИЕ НОВОГО ЧИТАТЕЛЯ", style="red")
     console.print("Нажми Enter, чтобы пропустить")
     user = []
@@ -330,7 +338,7 @@ def menu_journal():
     """Отображает все книги в таблице и вводит команды о редактировании"""
     choice = None
     
-    os.system('clear')
+    clear_screen()
     table_comands = Table()
     titles2 = ("#", "Команда")
     commands = ["Выдать книгу в аренду", "Вернуть книгу в библиотеку"]
@@ -392,7 +400,7 @@ def menu_search_book_id():
 
 def search_books(books):
     """Поиск книги"""
-    os.system('clear')
+    clear_screen()
     req = input("Введите название книги для поиска: ")
     indexs = []
     for index, book in enumerate(books):
@@ -443,7 +451,7 @@ def menu_search_user_id():
 
 def search_users(users):
     """Поиск читателя"""
-    os.system('clear')
+    clear_screen()
     req = input("Введите Фамилию читателя для поиска: ")
     indexs = []
     for index, user in enumerate(users):
@@ -543,7 +551,7 @@ def report(name, titles, data):
     cur_page = 0
     choice = None
     while True:
-        os.system('clear')
+        clear_screen()
         table = Table(title=f"{name} стр.{cur_page+1}", show_header=True)
         for title in titles:
             table.add_column(title, style="cyan", header_style="red")
@@ -588,7 +596,7 @@ def main():
     """Главный цикл"""
     choice = None
     while True:
-        os.system('clear')
+        clear_screen()
         console.print("АПР БИБЛИОТЕКАРЬ", justify='center', style="Red")
         if choice == None:
             if check_db():
@@ -597,7 +605,7 @@ def main():
                 choice = menu_create_tables()
                 continue
         elif choice == "q":
-            os.system('clear')
+            clear_screen()
             console.print("\nДо свидания!", justify='center', style="Red")
             break
         elif choice == "1":
