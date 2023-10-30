@@ -599,8 +599,13 @@ def main():
         clear_screen()
         console.print("АПР БИБЛИОТЕКАРЬ", justify='center', style="Red")
         if choice == None:
-            if check_db():
-                menu_start()
+            try:
+                if check_db():
+                    menu_start()
+            except:
+                console.print("Не удалось подключиться к базе данных", justify="center", style="Red")
+                console.print("Попробуйте указать правильный IP-адрес и перезапустить программу", justify="center", style="Red")
+                break
             else:
                 choice = menu_create_tables()
                 continue
