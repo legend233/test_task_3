@@ -603,13 +603,14 @@ def main():
             try:
                 if check_db():
                     menu_start()
+                else:
+                    choice = menu_create_tables()
+                    continue
             except:
                 console.print("Не удалось подключиться к базе данных", justify="center", style="Red")
                 console.print("Попробуйте указать правильный IP-адрес и перезапустить программу", justify="center", style="Red")
                 break
-            else:
-                choice = menu_create_tables()
-                continue
+            
         elif choice == "q":
             clear_screen()
             console.print("\nДо свидания!", justify='center', style="Red")
