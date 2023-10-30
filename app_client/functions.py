@@ -60,7 +60,7 @@ def total_delays() -> list:
     return requests.get(HOST + "/total_delays").json()
 
 def check_db():
-    return requests.get(HOST + "/check_db").json()
+    return requests.get(HOST + "/check_db", timeout=3).json()
 
 def create_test_data():
     return requests.get(HOST + "/create_test_data").json()
